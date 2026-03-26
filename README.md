@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TeleTrack — Panel de Administración
 
-## Getting Started
+Panel web para la gestión de técnicos de campo de una empresa de telecomunicaciones. Construido para escalar junto a la app móvil existente y la infraestructura interna de la empresa.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack tecnológico
+
+- **Framework** — Next.js 15 (App Router)
+- **Lenguaje** — TypeScript
+- **Estilos** — Tailwind CSS
+- **Estado** — Zustand (slices por feature)
+- **HTTP** — Axios
+- **Datos** — TanStack Query
+
+---
+
+## Arquitectura
+
+El proyecto sigue una **estructura basada en features**, consistente con las convenciones usadas en la app móvil. Cada feature es autocontenida y gestiona sus propias llamadas a la API, componentes, slice de estado, hooks y tipos.
+
+```
+src/
+├── app/                    # App Router de Next.js (rutas + capa BFF)
+│   ├── (auth)/             # Rutas de autenticación
+│   ├── (admin)/            # Rutas protegidas del panel
+│   └── api/                # API Routes del servidor (BFF)
+├── core/                   # Infraestructura compartida
+│   ├── gateway/            # Cliente Axios → API Gateway
+│   ├── auth/
+│   ├── components/
+│   ├── config/
+│   ├── hooks/
+│   ├── store/
+│   └── utils/
+├── features/               # Módulos por feature
+│   ├── auth/
+│   ├── technicians/
+│   ├── dashboard/
+│   └── users/
+└── shared/                 # UI y utilidades transversales
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Patrón BFF
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Las API Routes de Next.js (`src/app/api/`) actúan como proxy seguro entre el cliente React y el API Gateway central de la empresa. Las credenciales del servidor nunca llegan al navegador.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+Cliente React → /app/api/route.ts → core/gateway → API Gateway
+```
 
-## Learn More
+Ver [`src/app/api/README.md`](./src/app/api/README.md) y [`src/core/gateway/README.md`](./src/core/gateway/README.md) para más detalle.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Inicio rápido
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Variables de entorno
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Variable | Descripción |
+|---|---|
+| `GATEWAY_URL` | URL base del API Gateway central |
+| `GATEWAY_SECRET` | API key para autenticación con el Gateway |
+| `NEXT_PUBLIC_APP_NAME` | Nombre visible de la aplicación |
+
+> Las variables sin el prefijo `NEXT_PUBLIC_` son exclusivas del servidor y nunca llegan al bundle del cliente.
+
+---
+
+## Relacionado
+
+- [App móvil](../mobile) — App en Expo que comparte las mismas convenciones y API Gateway
